@@ -1,8 +1,6 @@
 """Tests for external cache provider API."""
 
-import math
 import pytest
-from unittest.mock import MagicMock, patch
 from typing import Optional
 
 from comfy_execution.cache_provider import (
