@@ -17,6 +17,7 @@ class ConvertToList(io.ComfyNode):
             display_name="Convert to List",
             category="logic",
             is_input_list=True,
+            search_aliases=["Image Iterator", "Text Iterator", "Iterator"],
             inputs=[_io.Autogrow.Input("inputs", template=template_autogrow)],
             outputs=[
                 io.MatchType.Output(template=template_matchtype, is_output_list=True),
