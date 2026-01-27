@@ -8,7 +8,7 @@ from aiohttp import web
 from pydantic import ValidationError
 
 import app.assets.manager as manager
-# import app.assets.scanner as scanner
+import app.assets.scanner as scanner
 from app import user_manager
 from app.assets.api import schemas_in
 from app.assets.helpers import get_query_dict
@@ -96,6 +96,7 @@ async def get_asset(request: web.Request) -> web.Response:
 
 @ROUTES.get(f"/api/assets/{{id:{UUID_RE}}}/content")
 async def download_asset_content(request: web.Request) -> web.Response:
+    return _error_response(501, "NOT_IMPLEMENTED", "Downloading asset content is not implemented yet.")
     # question: do we need disposition? could we just stick with one of these?
     disposition = request.query.get("disposition", "attachment").lower().strip()
     if disposition not in {"inline", "attachment"}:
@@ -124,6 +125,7 @@ async def download_asset_content(request: web.Request) -> web.Response:
 
 @ROUTES.post("/api/assets/from-hash")
 async def create_asset_from_hash(request: web.Request) -> web.Response:
+    return _error_response(501, "NOT_IMPLEMENTED", "Creating assets from hash is not implemented yet.")
     try:
         payload = await request.json()
         body = schemas_in.CreateFromHashBody.model_validate(payload)
@@ -387,6 +389,7 @@ async def set_asset_preview(request: web.Request) -> web.Response:
 
 @ROUTES.delete(f"/api/assets/{{id:{UUID_RE}}}")
 async def delete_asset(request: web.Request) -> web.Response:
+    return _error_response(501, "NOT_IMPLEMENTED", "Deleting assets is not implemented yet.")
     asset_info_id = str(uuid.UUID(request.match_info["id"]))
     delete_content = request.query.get("delete_content")
     delete_content = True if delete_content is None else delete_content.lower() not in {"0", "false", "no"}
@@ -496,22 +499,22 @@ async def delete_asset_tags(request: web.Request) -> web.Response:
     return web.json_response(result.model_dump(mode="json"), status=200)
 
 
-# NOTE: this exists in case we decide to enable asset scan to be triggered separately from calling /object_info
-# @ROUTES.post("/api/assets/scan/seed")
-# async def seed_assets(request: web.Request) -> web.Response:
-#     try:
-#         payload = await request.json()
-#     except Exception:
-#         payload = {}
+@ROUTES.post("/api/assets/scan/seed")
+async def seed_assets(request: web.Request) -> web.Response:
+    return _error_response(501, "NOT_IMPLEMENTED", "Seeding assets is not implemented yet.")
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {}
 
-#     try:
-#         body = schemas_in.ScheduleAssetScanBody.model_validate(payload)
-#     except ValidationError as ve:
-#         return _validation_error_response("INVALID_BODY", ve)
+    try:
+        body = schemas_in.ScheduleAssetScanBody.model_validate(payload)
+    except ValidationError as ve:
+        return _validation_error_response("INVALID_BODY", ve)
 
-#     try:
-#         scanner.seed_assets(body.roots)
-#     except Exception:
-#         logging.exception("seed_assets failed for roots=%s", body.roots)
-#         return _error_response(500, "INTERNAL", "Unexpected server error.")
-#     return web.json_response({"synced": True, "roots": body.roots}, status=200)
+    try:
+        scanner.seed_assets(body.roots)
+    except Exception:
+        logging.exception("seed_assets failed for roots=%s", body.roots)
+        return _error_response(500, "INTERNAL", "Unexpected server error.")
+    return web.json_response({"synced": True, "roots": body.roots}, status=200)
