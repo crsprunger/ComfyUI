@@ -679,14 +679,21 @@ class PromptServer():
                 info['deprecated'] = True
             if getattr(obj_class, "EXPERIMENTAL", False):
                 info['experimental'] = True
+            if getattr(obj_class, "DEV_ONLY", False):
+                info['dev_only'] = True
 
             if hasattr(obj_class, 'API_NODE'):
                 info['api_node'] = obj_class.API_NODE
+
+            info['search_aliases'] = getattr(obj_class, 'SEARCH_ALIASES', [])
             return info
 
         @routes.get("/object_info")
         async def get_object_info(request):
-            seed_assets(["models"])
+            try:
+                seed_assets(["models"])
+            except Exception as e:
+                logging.error(f"Failed to seed assets: {e}")
             with folder_paths.cache_helper:
                 out = {}
                 for x in nodes.NODE_CLASS_MAPPINGS:
