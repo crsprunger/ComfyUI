@@ -126,8 +126,7 @@ class VideoFromFile(VideoInput):
                     else container.demux(video_stream)
                 )
                 for packet in frame_iterator:
-                    for _ in packet.decode():
-                        frame_count += 1
+                    frame_count += 1
                 if frame_count > 0:
                     return float(frame_count / video_stream.average_rate) - self.start_time
 
