@@ -271,21 +271,22 @@ def upload_asset_from_temp_path(
             raise RuntimeError("inconsistent DB state after ingest")
         info, asset = pair
         tag_names = get_asset_tags(session, asset_info_id=info.id)
+        created_result = schemas_out.AssetCreated(
+            id=info.id,
+            name=info.name,
+            asset_hash=asset.hash,
+            size=int(asset.size_bytes),
+            mime_type=asset.mime_type,
+            tags=tag_names,
+            user_metadata=info.user_metadata or {},
+            preview_id=info.preview_id,
+            created_at=info.created_at,
+            last_access_time=info.last_access_time,
+            created_new=result["asset_created"],
+        )
         session.commit()
 
-    return schemas_out.AssetCreated(
-        id=info.id,
-        name=info.name,
-        asset_hash=asset.hash,
-        size=int(asset.size_bytes),
-        mime_type=asset.mime_type,
-        tags=tag_names,
-        user_metadata=info.user_metadata or {},
-        preview_id=info.preview_id,
-        created_at=info.created_at,
-        last_access_time=info.last_access_time,
-        created_new=result["asset_created"],
-    )
+    return created_result
 
 
 def update_asset(
@@ -314,16 +315,17 @@ def update_asset(
         )
 
         tag_names = get_asset_tags(session, asset_info_id=asset_info_id)
+        result = schemas_out.AssetUpdated(
+            id=info.id,
+            name=info.name,
+            asset_hash=info.asset.hash if info.asset else None,
+            tags=tag_names,
+            user_metadata=info.user_metadata or {},
+            updated_at=info.updated_at,
+        )
         session.commit()
 
-    return schemas_out.AssetUpdated(
-        id=info.id,
-        name=info.name,
-        asset_hash=info.asset.hash if info.asset else None,
-        tags=tag_names,
-        user_metadata=info.user_metadata or {},
-        updated_at=info.updated_at,
-    )
+    return result
 
 
 def set_asset_preview(
@@ -349,20 +351,21 @@ def set_asset_preview(
         if not res:
             raise RuntimeError("State changed during preview update")
         info, asset, tags = res
+        result = schemas_out.AssetDetail(
+            id=info.id,
+            name=info.name,
+            asset_hash=asset.hash if asset else None,
+            size=int(asset.size_bytes) if asset and asset.size_bytes is not None else None,
+            mime_type=asset.mime_type if asset else None,
+            tags=tags,
+            user_metadata=info.user_metadata or {},
+            preview_id=info.preview_id,
+            created_at=info.created_at,
+            last_access_time=info.last_access_time,
+        )
         session.commit()
 
-    return schemas_out.AssetDetail(
-        id=info.id,
-        name=info.name,
-        asset_hash=asset.hash if asset else None,
-        size=int(asset.size_bytes) if asset and asset.size_bytes is not None else None,
-        mime_type=asset.mime_type if asset else None,
-        tags=tags,
-        user_metadata=info.user_metadata or {},
-        preview_id=info.preview_id,
-        created_at=info.created_at,
-        last_access_time=info.last_access_time,
-    )
+    return result
 
 
 def delete_asset_reference(*, asset_info_id: str, owner_id: str, delete_content_if_orphan: bool = True) -> bool:
@@ -422,21 +425,22 @@ def create_asset_from_hash(
             owner_id=owner_id,
         )
         tag_names = get_asset_tags(session, asset_info_id=info.id)
+        result = schemas_out.AssetCreated(
+            id=info.id,
+            name=info.name,
+            asset_hash=asset.hash,
+            size=int(asset.size_bytes),
+            mime_type=asset.mime_type,
+            tags=tag_names,
+            user_metadata=info.user_metadata or {},
+            preview_id=info.preview_id,
+            created_at=info.created_at,
+            last_access_time=info.last_access_time,
+            created_new=False,
+        )
         session.commit()
 
-    return schemas_out.AssetCreated(
-        id=info.id,
-        name=info.name,
-        asset_hash=asset.hash,
-        size=int(asset.size_bytes),
-        mime_type=asset.mime_type,
-        tags=tag_names,
-        user_metadata=info.user_metadata or {},
-        preview_id=info.preview_id,
-        created_at=info.created_at,
-        last_access_time=info.last_access_time,
-        created_new=False,
-    )
+    return result
 
 
 def add_tags_to_asset(
