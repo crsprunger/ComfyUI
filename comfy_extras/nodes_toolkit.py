@@ -20,7 +20,11 @@ class ConvertToList(io.ComfyNode):
             search_aliases=["Image Iterator", "Text Iterator", "Iterator"],
             inputs=[_io.Autogrow.Input("inputs", template=template_autogrow)],
             outputs=[
-                io.MatchType.Output(template=template_matchtype, is_output_list=True),
+                io.MatchType.Output(
+                    template=template_matchtype,
+                    is_output_list=True,
+                    display_name="list",
+                ),
             ],
         )
 
