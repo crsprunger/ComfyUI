@@ -19,6 +19,27 @@ class NodeInputError(Exception):
 class NodeNotFoundError(Exception):
     pass
 
+
+def get_expected_outputs_for_node(dynprompt, node_id: str) -> frozenset:
+    """Get the set of output indices that are connected downstream.
+    Returns outputs that MIGHT be used.
+    Outputs NOT in this set are DEFINITELY not used and safe to skip.
+    """
+    expected = set()
+    for other_node_id in dynprompt.all_node_ids():
+        try:
+            node_data = dynprompt.get_node(other_node_id)
+        except NodeNotFoundError:
+            continue
+        inputs = node_data.get("inputs", {})
+        for input_name, value in inputs.items():
+            if is_link(value):
+                from_node_id, from_socket = value
+                if from_node_id == node_id:
+                    expected.add(from_socket)
+    return frozenset(expected)
+
+
 class DynamicPrompt:
     def __init__(self, original_prompt):
         # The original prompt provided by the user
